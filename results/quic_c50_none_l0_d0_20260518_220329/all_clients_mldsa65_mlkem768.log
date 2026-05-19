@@ -1,0 +1,190 @@
+--- cliente1 ---
+[client-1] Applying netem rules to lo...
+[client-1] SIG_ALG=mldsa65 KEM_ALG=mlkem768 PROTOCOL=QUIC
+[client-1] Done. Results in /results/client_1_mldsa65_mlkem768.csv
+--- cliente2 ---
+[client-2] Applying netem rules to lo...
+[client-2] SIG_ALG=mldsa65 KEM_ALG=mlkem768 PROTOCOL=QUIC
+[client-2] Done. Results in /results/client_2_mldsa65_mlkem768.csv
+--- cliente3 ---
+[client-3] Applying netem rules to lo...
+[client-3] SIG_ALG=mldsa65 KEM_ALG=mlkem768 PROTOCOL=QUIC
+[client-3] Done. Results in /results/client_3_mldsa65_mlkem768.csv
+--- cliente4 ---
+[client-4] Applying netem rules to lo...
+[client-4] SIG_ALG=mldsa65 KEM_ALG=mlkem768 PROTOCOL=QUIC
+[client-4] Done. Results in /results/client_4_mldsa65_mlkem768.csv
+--- cliente5 ---
+[client-5] Applying netem rules to lo...
+[client-5] SIG_ALG=mldsa65 KEM_ALG=mlkem768 PROTOCOL=QUIC
+[client-5] Done. Results in /results/client_5_mldsa65_mlkem768.csv
+--- cliente6 ---
+[client-6] Applying netem rules to lo...
+[client-6] SIG_ALG=mldsa65 KEM_ALG=mlkem768 PROTOCOL=QUIC
+[client-6] Done. Results in /results/client_6_mldsa65_mlkem768.csv
+--- cliente7 ---
+[client-7] Applying netem rules to lo...
+[client-7] SIG_ALG=mldsa65 KEM_ALG=mlkem768 PROTOCOL=QUIC
+[client-7] Done. Results in /results/client_7_mldsa65_mlkem768.csv
+--- cliente8 ---
+[client-8] Applying netem rules to lo...
+[client-8] SIG_ALG=mldsa65 KEM_ALG=mlkem768 PROTOCOL=QUIC
+[client-8] Done. Results in /results/client_8_mldsa65_mlkem768.csv
+--- cliente9 ---
+[client-9] Applying netem rules to lo...
+[client-9] SIG_ALG=mldsa65 KEM_ALG=mlkem768 PROTOCOL=QUIC
+[client-9] Done. Results in /results/client_9_mldsa65_mlkem768.csv
+--- cliente10 ---
+[client-10] Applying netem rules to lo...
+[client-10] SIG_ALG=mldsa65 KEM_ALG=mlkem768 PROTOCOL=QUIC
+--- cliente11 ---
+[client-11] Applying netem rules to lo...
+[client-11] SIG_ALG=mldsa65 KEM_ALG=mlkem768 PROTOCOL=QUIC
+[client-11] Done. Results in /results/client_11_mldsa65_mlkem768.csv
+--- cliente12 ---
+[client-12] Applying netem rules to lo...
+[client-12] SIG_ALG=mldsa65 KEM_ALG=mlkem768 PROTOCOL=QUIC
+--- cliente13 ---
+[client-13] Applying netem rules to lo...
+[client-13] SIG_ALG=mldsa65 KEM_ALG=mlkem768 PROTOCOL=QUIC
+[client-13] Done. Results in /results/client_13_mldsa65_mlkem768.csv
+--- cliente14 ---
+[client-14] Applying netem rules to lo...
+[client-14] SIG_ALG=mldsa65 KEM_ALG=mlkem768 PROTOCOL=QUIC
+[client-14] Done. Results in /results/client_14_mldsa65_mlkem768.csv
+--- cliente15 ---
+[client-15] Applying netem rules to lo...
+[client-15] SIG_ALG=mldsa65 KEM_ALG=mlkem768 PROTOCOL=QUIC
+[client-15] Done. Results in /results/client_15_mldsa65_mlkem768.csv
+--- cliente16 ---
+[client-16] Applying netem rules to lo...
+[client-16] SIG_ALG=mldsa65 KEM_ALG=mlkem768 PROTOCOL=QUIC
+[client-16] Done. Results in /results/client_16_mldsa65_mlkem768.csv
+--- cliente17 ---
+[client-17] Applying netem rules to lo...
+[client-17] SIG_ALG=mldsa65 KEM_ALG=mlkem768 PROTOCOL=QUIC
+[client-17] Done. Results in /results/client_17_mldsa65_mlkem768.csv
+--- cliente18 ---
+[client-18] Applying netem rules to lo...
+[client-18] SIG_ALG=mldsa65 KEM_ALG=mlkem768 PROTOCOL=QUIC
+[client-18] Done. Results in /results/client_18_mldsa65_mlkem768.csv
+--- cliente19 ---
+[client-19] Applying netem rules to lo...
+[client-19] SIG_ALG=mldsa65 KEM_ALG=mlkem768 PROTOCOL=QUIC
+[client-19] Done. Results in /results/client_19_mldsa65_mlkem768.csv
+--- cliente20 ---
+[client-20] Applying netem rules to lo...
+[client-20] SIG_ALG=mldsa65 KEM_ALG=mlkem768 PROTOCOL=QUIC
+[client-20] Done. Results in /results/client_20_mldsa65_mlkem768.csv
+--- cliente21 ---
+[client-21] Applying netem rules to lo...
+[client-21] SIG_ALG=mldsa65 KEM_ALG=mlkem768 PROTOCOL=QUIC
+[client-21] Done. Results in /results/client_21_mldsa65_mlkem768.csv
+--- cliente22 ---
+[client-22] Applying netem rules to lo...
+[client-22] SIG_ALG=mldsa65 KEM_ALG=mlkem768 PROTOCOL=QUIC
+[client-22] Done. Results in /results/client_22_mldsa65_mlkem768.csv
+--- cliente23 ---
+[client-23] Applying netem rules to lo...
+[client-23] SIG_ALG=mldsa65 KEM_ALG=mlkem768 PROTOCOL=QUIC
+[client-23] Done. Results in /results/client_23_mldsa65_mlkem768.csv
+--- cliente24 ---
+[client-24] Applying netem rules to lo...
+[client-24] SIG_ALG=mldsa65 KEM_ALG=mlkem768 PROTOCOL=QUIC
+[client-24] Done. Results in /results/client_24_mldsa65_mlkem768.csv
+--- cliente25 ---
+[client-25] Applying netem rules to lo...
+[client-25] SIG_ALG=mldsa65 KEM_ALG=mlkem768 PROTOCOL=QUIC
+[client-25] Done. Results in /results/client_25_mldsa65_mlkem768.csv
+--- cliente26 ---
+[client-26] Applying netem rules to lo...
+[client-26] SIG_ALG=mldsa65 KEM_ALG=mlkem768 PROTOCOL=QUIC
+--- cliente27 ---
+[client-27] Applying netem rules to lo...
+[client-27] SIG_ALG=mldsa65 KEM_ALG=mlkem768 PROTOCOL=QUIC
+[client-27] Done. Results in /results/client_27_mldsa65_mlkem768.csv
+--- cliente28 ---
+[client-28] Applying netem rules to lo...
+[client-28] SIG_ALG=mldsa65 KEM_ALG=mlkem768 PROTOCOL=QUIC
+[client-28] Done. Results in /results/client_28_mldsa65_mlkem768.csv
+--- cliente29 ---
+[client-29] Applying netem rules to lo...
+[client-29] SIG_ALG=mldsa65 KEM_ALG=mlkem768 PROTOCOL=QUIC
+[client-29] Done. Results in /results/client_29_mldsa65_mlkem768.csv
+--- cliente30 ---
+[client-30] Applying netem rules to lo...
+[client-30] SIG_ALG=mldsa65 KEM_ALG=mlkem768 PROTOCOL=QUIC
+[client-30] Done. Results in /results/client_30_mldsa65_mlkem768.csv
+--- cliente31 ---
+[client-31] Applying netem rules to lo...
+[client-31] SIG_ALG=mldsa65 KEM_ALG=mlkem768 PROTOCOL=QUIC
+--- cliente32 ---
+[client-32] Applying netem rules to lo...
+[client-32] SIG_ALG=mldsa65 KEM_ALG=mlkem768 PROTOCOL=QUIC
+[client-32] Done. Results in /results/client_32_mldsa65_mlkem768.csv
+--- cliente33 ---
+[client-33] Applying netem rules to lo...
+[client-33] SIG_ALG=mldsa65 KEM_ALG=mlkem768 PROTOCOL=QUIC
+[client-33] Done. Results in /results/client_33_mldsa65_mlkem768.csv
+--- cliente34 ---
+[client-34] Applying netem rules to lo...
+[client-34] SIG_ALG=mldsa65 KEM_ALG=mlkem768 PROTOCOL=QUIC
+--- cliente35 ---
+[client-35] Applying netem rules to lo...
+[client-35] SIG_ALG=mldsa65 KEM_ALG=mlkem768 PROTOCOL=QUIC
+[client-35] Done. Results in /results/client_35_mldsa65_mlkem768.csv
+--- cliente36 ---
+[client-36] Applying netem rules to lo...
+[client-36] SIG_ALG=mldsa65 KEM_ALG=mlkem768 PROTOCOL=QUIC
+[client-36] Done. Results in /results/client_36_mldsa65_mlkem768.csv
+--- cliente37 ---
+[client-37] Applying netem rules to lo...
+[client-37] SIG_ALG=mldsa65 KEM_ALG=mlkem768 PROTOCOL=QUIC
+--- cliente38 ---
+[client-38] Applying netem rules to lo...
+[client-38] SIG_ALG=mldsa65 KEM_ALG=mlkem768 PROTOCOL=QUIC
+--- cliente39 ---
+[client-39] Applying netem rules to lo...
+[client-39] SIG_ALG=mldsa65 KEM_ALG=mlkem768 PROTOCOL=QUIC
+[client-39] Done. Results in /results/client_39_mldsa65_mlkem768.csv
+--- cliente40 ---
+[client-40] Applying netem rules to lo...
+[client-40] SIG_ALG=mldsa65 KEM_ALG=mlkem768 PROTOCOL=QUIC
+--- cliente41 ---
+[client-41] Applying netem rules to lo...
+[client-41] SIG_ALG=mldsa65 KEM_ALG=mlkem768 PROTOCOL=QUIC
+[client-41] Done. Results in /results/client_41_mldsa65_mlkem768.csv
+--- cliente42 ---
+[client-42] Applying netem rules to lo...
+[client-42] SIG_ALG=mldsa65 KEM_ALG=mlkem768 PROTOCOL=QUIC
+[client-42] Done. Results in /results/client_42_mldsa65_mlkem768.csv
+--- cliente43 ---
+[client-43] Applying netem rules to lo...
+[client-43] SIG_ALG=mldsa65 KEM_ALG=mlkem768 PROTOCOL=QUIC
+--- cliente44 ---
+[client-44] Applying netem rules to lo...
+[client-44] SIG_ALG=mldsa65 KEM_ALG=mlkem768 PROTOCOL=QUIC
+[client-44] Done. Results in /results/client_44_mldsa65_mlkem768.csv
+--- cliente45 ---
+[client-45] Applying netem rules to lo...
+[client-45] SIG_ALG=mldsa65 KEM_ALG=mlkem768 PROTOCOL=QUIC
+[client-45] Done. Results in /results/client_45_mldsa65_mlkem768.csv
+--- cliente46 ---
+[client-46] Applying netem rules to lo...
+[client-46] SIG_ALG=mldsa65 KEM_ALG=mlkem768 PROTOCOL=QUIC
+[client-46] Done. Results in /results/client_46_mldsa65_mlkem768.csv
+--- cliente47 ---
+[client-47] Applying netem rules to lo...
+[client-47] SIG_ALG=mldsa65 KEM_ALG=mlkem768 PROTOCOL=QUIC
+--- cliente48 ---
+[client-48] Applying netem rules to lo...
+[client-48] SIG_ALG=mldsa65 KEM_ALG=mlkem768 PROTOCOL=QUIC
+[client-48] Done. Results in /results/client_48_mldsa65_mlkem768.csv
+--- cliente49 ---
+[client-49] Applying netem rules to lo...
+[client-49] SIG_ALG=mldsa65 KEM_ALG=mlkem768 PROTOCOL=QUIC
+[client-49] Done. Results in /results/client_49_mldsa65_mlkem768.csv
+--- cliente50 ---
+[client-50] Applying netem rules to lo...
+[client-50] SIG_ALG=mldsa65 KEM_ALG=mlkem768 PROTOCOL=QUIC
+[client-50] Done. Results in /results/client_50_mldsa65_mlkem768.csv

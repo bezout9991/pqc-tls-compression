@@ -1,0 +1,11 @@
+protocol=quic
+sig_alg=mldsa65
+kem_alg=mlkem768
+num_clients=10
+runs_per_client=500
+total_handshakes=5000
+network_profile=none
+loss_percent=0
+delay_ms=0
+total_time_ms=62141
+timestamp=20260518_173815

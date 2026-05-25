@@ -2,7 +2,7 @@ ARG LIBOQS_TAG=0.12.0
 ARG MSQUIC_TAG=nibanks/openss3.3-test
 ARG OQSPROVIDER_TAG=0.8.0
 #ARG OPENSSL_TAG=openssl-3.3.1
-ARG OPENSSL_TAG=openssl-3.4
+ARG OPENSSL_TAG=openssl-3.4.2
 ARG MAKE_DEFINES="-j 4"     
 ARG MSQUIC_DEBUG=off        
 ARG LIBOQS_BUILD_DEFINES="-DOQS_DIST_BUILD=ON"
@@ -43,7 +43,8 @@ RUN set -eux; \
     cmake gcc ninja-build libunwind-dev \
     pkg-config build-essential \
     cargo git wget ca-certificates \
-    openssl libssl-dev; \
+    openssl libssl-dev \
+    zlib1g-dev libzstd-dev libbrotli-dev; \
   rm -rf /var/lib/apt/lists/*
 
 
@@ -69,12 +70,18 @@ RUN [ ! -d "${MSQUICDIR}" ] && \
     git clone --recursive --depth 1 --branch ${MSQUIC_TAG} https://github.com/montenegro-montes/msquic-pq.git
 RUN [ ! -d "${OPENSSLDIR}" ] && \ 
     mkdir openssl && \
-    git clone --depth 1 --branch ${OPENSSL_TAG} https://github.com/montenegro-montes/openssl.git
+    git clone --depth 1 --branch ${OPENSSL_TAG} https://github.com/openssl/openssl.git
 
 # Modificar límites en speed.c
 WORKDIR ${OPENSSLDIR}
 RUN sed -i 's/#define MAX_SIG_NUM .*/#define MAX_SIG_NUM 512/' ./apps/speed.c && \
     sed -i 's/#define MAX_KEM_NUM .*/#define MAX_KEM_NUM 512/' ./apps/speed.c
+
+# Patch: add -compress_cert flag to s_server for RFC 8879 certificate compression
+WORKDIR ${OPENSSLDIR}
+RUN sed -i '/OPT_NO_TX_CERT_COMP,/a\    OPT_COMPRESS_CERT,' apps/s_server.c && \
+    sed -i '/{"no_tx_cert_comp", OPT_NO_TX_CERT_COMP, NULL, "Disable sending TLSv1.3 compressed certificates"},/a\    {"compress_cert", OPT_COMPRESS_CERT, NULL, "Enable TLSv1.3 certificate compression (RFC 8879)"},' apps/s_server.c && \
+    sed -i '/case OPT_NO_RX_CERT_COMP:/i\        case OPT_COMPRESS_CERT:\n            ctx_options |= SSL_OP_ENABLE_CERT_COMPRESSION;\n            break;' apps/s_server.c
 
 
 WORKDIR $BASEDIR    
@@ -123,9 +130,17 @@ ARG OPENSSLDIR
 ARG OQSPROVIDERDIR
 ARG LIBDIR
 
+# Force cache invalidation for compression rebuild
+RUN echo "CACHE_BUST_COMPRESSION_v2" > /tmp/.compression_build
+
 # Install required build tools and system dependencies.
-RUN apt update && apt install -y --no-install-recommends python3 golang-go python3-pip && \ 
-    pip install jinja2 tabulate pyyaml --break-system-packages 
+# NOTE: zlib1g-dev, libzstd-dev, libbrotli-dev are REQUIRED for OpenSSL certificate compression (RFC 8879)
+# These MUST be installed BEFORE OpenSSL is configured for compression auto-detection to work
+RUN apt update && apt install -y --no-install-recommends python3 golang-go python3-pip \
+    zlib1g-dev libzstd-dev libbrotli-dev && \ 
+    pip install jinja2 tabulate pyyaml --break-system-packages && \
+    rm -rf /var/lib/apt/lists/* && \
+    ls /usr/include/zlib.h /usr/include/zstd.h /usr/include/brotli/encode.h 
 
 
 # Build and install MsQuic. We dupplicate the cmake command to ensure the OQS provider is enabled.
@@ -143,12 +158,14 @@ WORKDIR ${OPENSSLDIR}
 RUN if [ "$TARGETARCH" = "arm64" ]; then \
       echo "[BUILD] ARM64 — using linux-aarch64 target"; \
       LIBDIR=lib; \
-      LDFLAGS="-Wl,-rpath -Wl,${INSTALLDIR}/${LIBDIR}" ./Configure shared --prefix=${INSTALLDIR} linux-aarch64; \
+      LDFLAGS="-Wl,-rpath -Wl,${INSTALLDIR}/${LIBDIR}" ./Configure shared --prefix=${INSTALLDIR} -I/usr/include linux-aarch64 enable-zlib enable-brotli enable-zstd; \
     else \
-      echo "[BUILD] x86_64 — using default config"; \
+      echo "[BUILD] x86_64 — using linux-x86_64 target"; \
       LIBDIR=lib64; \
-      LDFLAGS="-Wl,-rpath -Wl,${INSTALLDIR}/${LIBDIR}" ./config shared --prefix=${INSTALLDIR}; \
+      LDFLAGS="-Wl,-rpath -Wl,${INSTALLDIR}/${LIBDIR}" ./Configure shared --prefix=${INSTALLDIR} -I/usr/include linux-x86_64 enable-zlib enable-brotli enable-zstd; \
     fi && \
+    echo "=== Checking compression detection ===" && \
+    grep -i "compress\|zlib\|brotli\|zstd" Makefile 2>/dev/null | head -10 || true && \
     make ${MAKE_DEFINES} && make install_sw install_ssldirs;
 
 
@@ -218,7 +235,8 @@ RUN set -eux; \
   printf 'Acquire::Check-Valid-Until "false";\n' > /etc/apt/apt.conf.d/99no-check-valid; \
   apt-get update; \
   apt-get install -y --no-install-recommends \
-    ca-certificates iproute2 && \
+    ca-certificates iproute2 tcpdump \
+    zlib1g libbrotli1 libzstd1 && \
     apt-get clean && \
     rm -rf /var/lib/apt/lists/*
 

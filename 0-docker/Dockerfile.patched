@@ -1,0 +1,19 @@
+# Dockerfile.patched - Build on top of existing image with OpenSSL compression
+FROM uma-tls-quic-pq-34
+
+RUN apt-get update -qq && apt-get install -y -qq gcc make perl git pkg-config \
+    zlib1g-dev libzstd-dev libbrotli-dev && rm -rf /var/lib/apt/lists/*
+
+RUN cd /tmp && git clone --depth 1 --branch openssl-3.4.2 https://github.com/openssl/openssl.git openssl-build && \
+    cd openssl-build && \
+    ./config no-shared --prefix=/opt/openssl-new && \
+    sed -i 's/^#define OPENSSL_NO_COMP_ALG$/\/\* #undef OPENSSL_NO_COMP_ALG \*\//' include/openssl/configuration.h && \
+    make -j$(nproc) && \
+    make install_sw install_ssldirs && \
+    cp /opt/openssl-new/bin/openssl /opt/oqssa/bin/openssl && \
+    rm -rf /tmp/openssl-build
+
+# Verify
+RUN /opt/oqssa/bin/openssl version && \
+    /opt/oqssa/bin/openssl s_server -help 2>&1 | grep "cert_comp" && \
+    echo "SUCCESS: cert_comp available!"

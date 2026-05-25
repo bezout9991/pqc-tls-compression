@@ -1,0 +1,10 @@
+protocol=tls
+sig_alg=mldsa65
+kem_alg=mlkem768
+runs_per_condition=500
+network_profile=simple
+loss_percent=4
+delay_ms=200
+timestamp=20260524_112656
+approach=certificate_compression_rfc8879
+structure=nocompress_and_compressed_subfolders

@@ -1,0 +1,68 @@
+# PQC TLS Compression - Git Ignore
+
+# Keep only compression-related files
+# Ignore everything else
+
+# Other launchers
+Launcherv3_arm.sh
+Launcherv3_concurrent.sh
+Launcherv3_resumption.sh
+Launcherv3_resumption_amort.sh
+Launcherv3_resumption_batch.sh
+
+# Other analysis scripts
+analyse_resumption.py
+analyse_resumption_batch.py
+
+# Other directories
+arm/
+concurrent/
+resumption/
+
+# Old docker files
+0-docker/Dockerfile
+0-docker/Dockerfile.openssl
+0-docker/Dockerfile.patched
+0-docker/patch_openssl.sh
+0-docker/patch_openssl_v2.sh
+
+# Other docker scripts
+0-docker/scripts/perftestClientConcurrent.sh
+0-docker/scripts/perftestClientResumption.sh
+0-docker/scripts/perftestClientResumptionAmort.sh
+0-docker/scripts/perftestClientResumptionBatch.sh
+0-docker/scripts/perftestClientTlsQuic.sh
+0-docker/scripts/perftestServerClientTlsQuic.sh
+0-docker/scripts/perftestServerTlsQuic.sh
+
+# Old results
+results/analysis_batch/
+results/comparison_*.csv
+results/comparison_*.pdf
+results/comparison_*.svg
+results/resumption_*/
+results/tls_none_l0_d0_20260524_111737/
+results/tls_none_l0_d0_20260525_124154/
+results/tls_none_l0_d0_20260525_165810/
+results/tls_none_l0_d0_20260527_122135/
+results/tls_simple_l2_d35_20260524_112209/
+results/tls_simple_l4_d200_20260524_112656/
+results/tls_stable_l0_d0_20260524_113152/
+
+# Temp scripts
+run_missing_pairs.sh
+run_missing_4_5.sh
+run_missing_compressed.sh
+run_quic_l4_d200.sh
+benchmark_compress.sh
+test.sh
+ssl_cert_comp_instrumented.c
+0-docker/ssl_cert_comp_instrumented.c
+
+# Python cache
+__pycache__/
+*.pyc
+
+# OS
+.DS_Store
+Thumbs.db

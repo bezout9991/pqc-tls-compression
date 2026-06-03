@@ -5,8 +5,7 @@ set -e
 # perftestServerCompress.sh
 # Serveur TLS/QUIC avec option compression certificat (RFC 8879)
 #
-# OpenSSL 3.4.2 uses -tx_cert_comp (not -cert_comp)
-# Compression is enabled by default if compression libs are available
+# OpenSSL 3.4.2 uses -cert_comp to pre-compress server certificates
 # -no_tx_cert_comp explicitly disables sending compressed certificates
 # -------------------------------------------------------------------
 
@@ -33,7 +32,7 @@ if [ "$USE_TLS" = "true" ]; then
         echo "[SERVER] Starting TLS with certificate compression (RFC 8879)..."
         /opt/oqssa/bin/openssl s_server \
             -cert "$CERT_PATH/server.crt" -key "$CERT_PATH/server.key" \
-            -groups "$KEM_ALG" -www -tls1_3 -accept :4433
+            -groups "$KEM_ALG" -www -tls1_3 -accept :4433 -cert_comp
     else
         echo "[SERVER] Starting TLS without certificate compression..."
         # -no_tx_cert_comp explicitly disables sending compressed certificates

@@ -19,12 +19,9 @@ arm/
 concurrent/
 resumption/
 
-# Old docker files
-0-docker/Dockerfile
+# Old docker files (keep main Dockerfile and patches)
 0-docker/Dockerfile.openssl
 0-docker/Dockerfile.patched
-0-docker/patch_openssl.sh
-0-docker/patch_openssl_v2.sh
 
 # Other docker scripts
 0-docker/scripts/perftestClientConcurrent.sh

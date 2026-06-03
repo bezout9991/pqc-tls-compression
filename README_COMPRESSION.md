@@ -105,15 +105,25 @@ $ openssl s_server -help 2>&1 | grep cert_comp
 
 The binaire supports the compression flags.
 
-### 3. OpenSSL Fails at Runtime
+### 3. OpenSSL Fails Only for PQ Certificates
 
+**PQ certificate (ML-DSA44) — FAILS:**
 ```bash
-$ openssl s_server -cert_comp -cert cert.pem -key key.pem -groups mlkem512 -tls1_3
+$ openssl s_server -cert_comp -cert mldsa.crt -key mldsa.key -groups mlkem512 -tls1_3
 Compressing certificates
 Error compressing certs on ctx
 ```
 
-Compression is attempted but fails for PQ certificates from the OQS provider.
+**Classical certificate (RSA 2048) — WORKS:**
+```bash
+$ openssl s_server -cert_comp -cert rsa.crt -key rsa.key -tls1_3
+Compressing certificates
+ACCEPT
+$ openssl s_client -connect 127.0.0.1:4433 -CAfile rsa.crt -tls1_3
+Verify return code: 0 (ok)
+```
+
+**Result**: RFC 8879 compression works for classical keys (RSA) but fails for post-quantum keys from the OQS provider.
 
 ### 4. No CompressedCertificate (HandshakeType 25) Observed
 
@@ -218,7 +228,9 @@ The `-cert_comp` flag causes the server to attempt compression, but it **fails s
 
 ### Correct Statement for Paper/Thesis
 
-> "We evaluated TLS 1.3 certificate compression (RFC 8879) with post-quantum certificates (ML-DSA, ML-KEM, HQC) using OpenSSL 3.4.2 with OQS Provider 0.8.0. The client correctly negotiated the `compress_certificate` extension with brotli, zlib, and zstd algorithms. However, the server failed to compress the certificates at runtime (`Error compressing certs on ctx`), and no `CompressedCertificate` messages were observed in network captures. Network traffic remained identical (<0.1% difference) between compressed and uncompressed runs across all tested configurations (TLS/QUIC, 4 algorithm pairs, 3 network profiles, 500 runs each). Latency variations observed across conditions are attributable to experimental variability rather than certificate compression. These results indicate that RFC 8879 certificate compression is not yet functionally operational for post-quantum certificates in the current OpenSSL/OQS stack."
+> "We evaluated TLS 1.3 certificate compression (RFC 8879) with post-quantum certificates (ML-DSA, ML-KEM, HQC) using OpenSSL 3.4.2 with OQS Provider 0.8.0. The client correctly negotiated the `compress_certificate` extension with brotli, zlib, and zstd algorithms. However, the server failed to compress the certificates at runtime (`Error compressing certs on ctx`), and no `CompressedCertificate` messages were observed in network captures. Network traffic remained identical (<0.1% difference) between compressed and uncompressed runs across all tested configurations.
+>
+> Critically, control tests with classical RSA 2048 certificates under identical conditions **succeeded** — the server compressed the certificate and the handshake completed normally. This demonstrates that the limitation is specific to post-quantum keys from the OQS provider, not a general OpenSSL compilation issue.
 
 ---
 

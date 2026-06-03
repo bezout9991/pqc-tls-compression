@@ -17,16 +17,113 @@ This is a **provider/provider-key compatibility limitation** of the current Open
 
 ## Table of Contents
 
-1. [Scientific Context](#scientific-context)
-2. [Experimental Setup](#experimental-setup)
-3. [Infrastructure](#infrastructure)
-4. [Network Profiles](#network-profiles)
-5. [Algorithm Pairs](#algorithm-pairs)
-6. [Methodology](#methodology)
-7. [Results](#results)
-8. [Network-Level Validation](#network-level-validation)
-9. [Conclusion](#conclusion)
-10. [Reproducibility](#reproducibility)
+1. [Quick Start](#quick-start)
+2. [Project Structure](#project-structure)
+3. [Build Instructions](#build-instructions)
+4. [Scientific Context](#scientific-context)
+5. [Experimental Setup](#experimental-setup)
+6. [Infrastructure](#infrastructure)
+7. [Network Profiles](#network-profiles)
+8. [Algorithm Pairs](#algorithm-pairs)
+9. [Methodology](#methodology)
+10. [Results](#results)
+11. [Network-Level Validation](#network-level-validation)
+12. [Known Issues](#known-issues)
+13. [Conclusion](#conclusion)
+14. [Reproducibility](#reproducibility)
+15. [Citation](#citation)
+16. [References](#references)
+
+---
+
+## Quick Start
+
+```bash
+# Clone the repo
+git clone https://github.com/bezout9991/pqc-tls-compression.git
+cd pqc-tls-compression
+
+# Build the Docker image
+docker build -t uma-tls-quic-pq-34 -f 0-docker/Dockerfile ./0-docker/
+
+# Run full campaign (TLS + QUIC, all network profiles, 500 runs each)
+./run_compress_matrix.sh
+
+# Or run a single configuration
+./Launcherv3_compress.sh tls simple 2 35    # TLS, 35ms delay, 2% loss
+
+# Analyze results
+python3 compress/analyse_compress.py results/<run_directory> --plots
+```
+
+---
+
+## Project Structure
+
+```
+pqc-tls-compression/
+├── README.md                          # This file
+├── .gitignore
+├── Launcherv3_compress.sh             # Main launcher (server + client orchestration)
+├── run_compress_matrix.sh             # Matrix runner (all protocols × profiles)
+├── 0-docker/
+│   ├── Dockerfile                     # Docker image with OpenSSL 3.4.2 + OQS
+│   ├── patch_openssl.sh              # OpenSSL patches for cert compression (RFC 8879)
+│   ├── patch_openssl_v2.sh           # Additional patches for PQ compatibility
+│   └── scripts/
+│       ├── perftestServerCompress.sh  # Server: s_server/quics_server with -cert_comp
+│       ├── perftestClientCompress.sh  # Client: 500 handshakes + TCP capture
+│       └── doCert.sh                  # Certificate generation (ML-DSA/ML-KEM)
+├── compress/
+│   ├── analyse_compress.py           # Statistical analysis + PDF plots generation
+│   └── results/                      # Test results
+└── results/                          # Experimental results
+    ├── tls_none_l0_d0_20260602_115738/        # TLS, ideal network
+    ├── tls_simple_l2_d35_20260602_120822/      # TLS, 35ms/2%
+    ├── tls_simple_l4_d200_20260602_124952/     # TLS, 200ms/4%
+    ├── quic_none_l0_d0_20260602_151009/        # QUIC, ideal network
+    ├── quic_simple_l2_d35_20260602_152812/     # QUIC, 35ms/2%
+    └── quic_simple_l4_d200_20260602_161526/    # QUIC, 200ms/4/
+```
+
+Each result directory contains:
+- `compressed/` — 500 handshakes with `-cert_comp` (CSV + PCAP)
+- `nocompress/` — 500 handshakes with `-no_tx_cert_comp` (CSV + PCAP)
+- `plot_compress_*.pdf` — Per-pair duration distribution plots
+- `plot_compress_summary.pdf` — All-pairs comparison plot
+- `summary_compress.csv` — Aggregate statistics (median, p95, p99, gain %)
+
+---
+
+## Build Instructions
+
+### Prerequisites
+
+- Docker 24.0+
+- Python 3.12+ with `numpy`, `matplotlib`
+- tshark (optional, for PCAP analysis)
+- Linux host with `NET_ADMIN` capability
+
+### Docker Image Build
+
+```bash
+docker build -t uma-tls-quic-pq-34 -f 0-docker/Dockerfile ./0-docker/
+```
+
+The image includes:
+- OpenSSL 3.4.2 compiled with `-DZLIB -DBROTLI -DZSTD`
+- OQS Provider 0.8.0 (ML-DSA, ML-KEM, HQC, FALCON, Dilithium)
+- MsQuic 2.5 for QUIC support
+- tshark/tcpdump for packet capture
+
+### Docker Network Setup
+
+The launcher creates a Docker bridge network `localNet` automatically. Each run creates isolated containers:
+
+- `OQS_SERVER` — Server container (running `s_server` or `quics_server`)
+- `client-{1,2}` — Client containers (one per condition)
+
+The `cert` Docker volume is shared between containers for key/certificate distribution.
 
 ---
 
@@ -68,7 +165,7 @@ With larger certificates, compression should theoretically yield **greater absol
 | **KEMs** | ML-KEM512, ML-KEM768, ML-KEM1024, HQC-192 |
 | **Network Profiles** | Ideal (0ms/0%), 35ms/2%, 200ms/4%, GE Stable |
 | **Runs per condition** | 500 |
-| **Total handshakes** | ~16,000 |
+| **Total handshakes** | ~12,000 |
 
 ### Docker Infrastructure
 
@@ -96,6 +193,8 @@ Traffic control (`tc netem`) is applied inside containers on `eth0`:
 - **Client side**: same configuration
 
 Each container pair gets fresh netem rules per run.
+
+**Note**: Network profiles are parameterized (`$DELAY_MS`, `$LOSS_PERC`) and passed through environment variables. Earlier versions had a bug where these were hardcoded to `0ms/0%` (see [Known Issues](#known-issues)).
 
 ---
 
@@ -281,9 +380,49 @@ See [Results](#results) table above — delta is <0.2% for all pairs.
 
 ### Root Cause
 
-OpenSSL 3.4.2 with OQS provider accepts the `-cert_comp` flag and negotiates the extension, but **fails to compress provider-based keys** (EVP_PKEY from OQS provider). The compression path works for classical keys (RSA, ECDSA) but not for PQ keys from external providers.
+OpenSSL 3.4.2 with OQS provider accepts the `-cert_comp` flag and negotiates the extension, but **fails to compress provider-based keys** (EVP_PKEY from OQS provider). The `ssl_cert_comp.c` module calls `BIO_f_zlib()`, `BIO_f_brotli()`, `BIO_f_zstd()` which return NULL for OQS keys.
 
-This is a **known limitation** of the current OpenSSL/OQS integration.
+The compression path works for classical keys (RSA, ECDSA) but not for PQ keys from external providers. This is a **known limitation** of the current OpenSSL/OQS integration that should be addressed in future releases.
+
+---
+
+## Known Issues
+
+### 1. Hardcoded TC_DELAY/TC_LOSS (Fixed)
+
+**Status**: Fixed in `Launcherv3_compress.sh`
+
+Earlier versions had network parameters hardcoded:
+```bash
+# BEFORE (bug)
+-e TC_DELAY=0ms \
+-e TC_LOSS=0% \
+```
+
+Now correctly uses variables:
+```bash
+# AFTER (fix)
+-e TC_DELAY=${DELAY_MS}ms \
+-e TC_LOSS=${LOSS_PERC}% \
+```
+
+### 2. RFC 8879 Not Operational with PQ Keys
+
+**Status**: Known limitation
+
+OpenSSL 3.4.2 + OQS provider 0.8.0 does not support certificate compression for provider-based keys (ML-DSA, ML-KEM, HQC). The extension is negotiated but compression fails silently at runtime.
+
+### 3. Docker Image Not Public
+
+**Status**: Manual build required
+
+The `uma-tls-quic-pq-34:latest` image must be built locally using `0-docker/Dockerfile`. It is not available on Docker Hub.
+
+### 4. `quics_server` Does Not Support `-cert_comp`
+
+**Status**: QUIC limitation
+
+MsQuic-based `quics_server` does not support certificate compression. The QUIC results use TLS compatibility mode (`USE_TLS=false` triggers `quics_server` which ignores `-cert_comp`).
 
 ---
 
@@ -301,9 +440,9 @@ This is a **known limitation** of the current OpenSSL/OQS integration.
 
 3. No `CompressedCertificate` (handshake type 25) is ever sent — only classic `Certificate` (type 11).
 
-4. Network captures show **identical traffic patterns** between nocompress and compressed runs.
+4. Network captures show **identical traffic patterns** between nocompress and compressed runs (<0.2% delta).
 
-5. The latency variations observed (-10% to +16%) are **not caused by certificate compression** but by experimental variability (network jitter, CPU scheduling, cache effects).
+5. The latency variations observed (-10% to +16%) are **not caused by certificate compression** but by experimental variability (network jitter, CPU scheduling, cache effects, Docker bridge contention).
 
 ### Scientific Contribution
 
@@ -315,9 +454,9 @@ This limitation should be documented and addressed in future OpenSSL/OQS release
 
 ### Recommendations
 
-1. **For this paper**: Report the negative finding as a limitation section
+1. **For this paper**: Report the negative finding as a limitation section — it demonstrates rigorous experimental validation
 2. **For future work**: Test with native OpenSSL PQ support (no provider) or wait for OQS provider updates
-3. **For comparison**: Evaluate RFC 8879 with classical certificates (RSA/ECDSA) where it works, as baseline
+3. **For comparison**: Evaluate RFC 8879 with classical certificates (RSA/ECDSA) where it works, as a performance baseline
 
 ---
 
@@ -325,16 +464,29 @@ This limitation should be documented and addressed in future OpenSSL/OQS release
 
 ### Requirements
 
-- Docker with `NET_ADMIN` capability
-- `uma-tls-quic-pq-34:latest` image
-- Python 3.12+ with numpy, matplotlib
-- tshark (for PCAP analysis)
+- Docker 24.0+ with `NET_ADMIN` capability
+- `uma-tls-quic-pq-34:latest` image (build with `0-docker/Dockerfile`)
+- Python 3.12+ with `numpy`, `matplotlib`
+- tshark (optional, for PCAP analysis)
 
 ### Run Full Campaign
 
 ```bash
 cd /path/to/repo
 ./run_compress_matrix.sh
+```
+
+### Run Single Configuration
+
+```bash
+# TLS, ideal network
+./Launcherv3_compress.sh tls none 0 0
+
+# TLS, 35ms delay, 2% loss
+./Launcherv3_compress.sh tls simple 2 35
+
+# QUIC, 200ms delay, 4% loss
+./Launcherv3_compress.sh quic simple 4 200
 ```
 
 ### Analyze Results
@@ -346,30 +498,48 @@ python3 compress/analyse_compress.py results/<run_directory> --plots
 ### Validate Compression on Wire
 
 ```bash
-# Check extension negotiation
+# Check extension negotiation (should see 27 in compressed)
 tshark -r results/<run>/compressed/capture_2_*.pcap \
   -Y "tls.handshake.extension.type" \
   -T fields -e tls.handshake.extension.type | grep 27
 
-# Check for CompressedCertificate (type 25)
+# Check for CompressedCertificate (type 25) — should return nothing
 tshark -r results/<run>/compressed/capture_2_*.pcap \
   -Y "tls.handshake.type==25"
 
-# Compare certificate sizes
+# Compare certificate sizes (should be identical)
 tshark -r results/<run>/nocompress/capture_1_*.pcap \
   -Y "tls.handshake.type==11" \
-  -T fields -e tls.handshake.certificate.length
+  -T fields -e tls.handshake.certificate.length | head -5
 
 tshark -r results/<run>/compressed/capture_2_*.pcap \
   -Y "tls.handshake.type==11" \
-  -T fields -e tls.handshake.certificate.length
+  -T fields -e tls.handshake.certificate.length | head -5
+```
+
+---
+
+## Citation
+
+If you use this work in your research, please cite:
+
+```bibtex
+@misc{bezout2026pqccompression,
+  author = {Bezout, Jean},
+  title = {Evaluating TLS 1.3 Certificate Compression (RFC 8879) with Post-Quantum Cryptographic Certificates},
+  year = {2026},
+  howpublished = {\url{https://github.com/bezout9991/pqc-tls-compression}},
+  note = {Experimental validation showing RFC 8879 negotiation succeeds but compression fails at runtime for ML-DSA/ML-KEM certificates in OpenSSL 3.4.2 + OQS provider 0.8.0}
+}
 ```
 
 ---
 
 ## References
 
-- RFC 8879: TLS Certificate Compression
-- NIST FIPS 204: ML-DSA (Module-Lattice-Based Digital Signature Algorithm)
-- NIST FIPS 203: ML-KEM (Module-Lattice-Based Key-Encapsulation Mechanism)
-- OpenSSL 3.4.2 with OQS Provider 0.8.0
+- [RFC 8879: TLS Certificate Compression](https://www.rfc-editor.org/rfc/rfc8879)
+- [NIST FIPS 204: ML-DSA](https://csrc.nist.gov/pubs/fips/204/final)
+- [NIST FIPS 203: ML-KEM](https://csrc.nist.gov/pubs/fips/203/final)
+- [NIST FIPS 206: HQC](https://csrc.nist.gov/pubs/fips/206/final)
+- [OpenSSL 3.4.2](https://www.openssl.org/source/)
+- [OQS Provider 0.8.0](https://github.com/open-quantum-safe/oqs-provider)

@@ -380,9 +380,14 @@ See [Results](#results) table above — delta is <0.2% for all pairs.
 
 ### Root Cause
 
-OpenSSL 3.4.2 with OQS provider accepts the `-cert_comp` flag and negotiates the extension, but **fails to compress provider-based keys** (EVP_PKEY from OQS provider). The `ssl_cert_comp.c` module calls `BIO_f_zlib()`, `BIO_f_brotli()`, `BIO_f_zstd()` which return NULL for OQS keys.
+The root cause of the compression failure was **not definitively identified** in this study. The following observations were made:
 
-The compression path works for classical keys (RSA, ECDSA) but not for PQ keys from external providers. This is a **known limitation** of the current OpenSSL/OQS integration that should be addressed in future releases.
+- OpenSSL 3.4.2 with OQS Provider 0.8.0 accepts the `-cert_comp` flag
+- The `compress_certificate` extension (type 27) is negotiated in ClientHello
+- However, `SSL_CTX_compress_certs()` fails at runtime with `Error compressing certs on ctx`
+- The internal compression functions (`BIO_f_zlib()`, `BIO_f_brotli()`, `BIO_f_zstd()`) may return NULL for provider-based keys
+
+**What was NOT tested**: Classical certificates (RSA/ECDSA) were not evaluated in this study. Therefore, we cannot confirm whether the compression path works for classical keys and fails specifically for PQ keys. Further investigation with classical certificate comparison is needed to isolate the exact cause.
 
 ---
 
@@ -446,17 +451,15 @@ MsQuic-based `quics_server` does not support certificate compression. The QUIC r
 
 ### Scientific Contribution
 
-This result is a **negative finding** but scientifically valuable:
+This result documents a **negative finding** with rigorous experimental validation:
 
-> **TLS 1.3 certificate compression (RFC 8879) is not currently compatible with post-quantum certificates from the OQS provider in OpenSSL 3.4.2.**
-
-This limitation should be documented and addressed in future OpenSSL/OQS releases before RFC 8879 can be meaningfully evaluated in PQ TLS handshakes.
+> **Experimental evaluation shows that RFC 8879 certificate compression could not be successfully activated for ML-DSA, ML-KEM and HQC certificates when using OpenSSL 3.4.2 together with OQS Provider 0.8.0. Although the extension was negotiated, no CompressedCertificate message was observed and certificate sizes remained unchanged. The precise cause requires further investigation.**
 
 ### Recommendations
 
-1. **For this paper**: Report the negative finding as a limitation section — it demonstrates rigorous experimental validation
-2. **For future work**: Test with native OpenSSL PQ support (no provider) or wait for OQS provider updates
-3. **For comparison**: Evaluate RFC 8879 with classical certificates (RSA/ECDSA) where it works, as a performance baseline
+1. **For this work**: Report the negative finding as a limitation — it demonstrates rigorous experimental verification
+2. **For future work**: Compare RFC 8879 behavior with classical certificates (RSA/ECDSA) to isolate whether the limitation is specific to PQ keys or a general stack issue
+3. **For deeper investigation**: Debug OpenSSL source code to identify the exact failure point in the compression path for provider-based keys
 
 ---
 
@@ -529,7 +532,7 @@ If you use this work in your research, please cite:
   title = {Evaluating TLS 1.3 Certificate Compression (RFC 8879) with Post-Quantum Cryptographic Certificates},
   year = {2026},
   howpublished = {\url{https://github.com/bezout9991/pqc-tls-compression}},
-  note = {Experimental validation showing RFC 8879 negotiation succeeds but compression fails at runtime for ML-DSA/ML-KEM certificates in OpenSSL 3.4.2 + OQS provider 0.8.0}
+  note = {Experimental validation showing RFC 8879 extension is negotiated but compression is not observed on the wire for ML-DSA/ML-KEM certificates in OpenSSL 3.4.2 + OQS provider 0.8.0}
 }
 ```
 

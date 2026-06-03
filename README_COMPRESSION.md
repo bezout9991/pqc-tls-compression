@@ -14,10 +14,10 @@ Error compressing certs on ctx
 
 This was confirmed with:
 - **ML-DSA44 + ML-KEM512** (post-quantum): compression fails
-- **RSA 2048 + X25519** (classical): compression fails identically  
+- **RSA 2048 + X25519** (classical): compression fails identically
 - **ECDSA P-256 + X25519** (classical): compression fails identically
 
-**Conclusion: The issue is NOT specific to post-quantum certificates. The OpenSSL build used in this image does not support RFC 8879 certificate compression at all.**
+**Conclusion: RFC 8879 does not work for ANY certificate type in this OpenSSL build.** The issue is in the OpenSSL compilation/configuration, not specific to PQ or OQS provider.
 
 ---
 
@@ -143,17 +143,17 @@ Despite the `ACCEPT` message, the server immediately sends TCP RST when it recei
 Identical behavior: TCP RST after ClientHello with extension 27.
 
 **Root Cause: RFC 8879 is not functional in this OpenSSL build**, regardless of certificate type. The issue is in the OpenSSL compilation/configuration, not specific to PQ certificates.
-$ openssl s_client -connect 127.0.0.1:4433 -CAfile rsa.crt -tls1_3
-Verify return code: 0 (ok)
+
+### 4. Server Responds with TCP RST — No Handshake Completes
+
+```bash
+# Analysis of host-level PCAP (captured on Docker bridge)
+# Client sends ClientHello (288 bytes) with extension 27 (compress_certificate)
+# Server immediately responds with TCP RST (connection reset)
+# No ServerHello, no Certificate, no CompressedCertificate ever sent
 ```
 
-**Result**: RFC 8879 compression works for classical keys (RSA) but fails for post-quantum keys from the OQS provider.
-
-### 4. No CompressedCertificate (HandshakeType 25) Observed
-
-Analysis of PCAP captures confirms neither `Certificate` (type 11) nor `CompressedCertificate` (type 25) are visible through tshark's default TLS dissection of TLS 1.3 encrypted handshakes.
-
-**The server log error confirms it never sent a CompressedCertificate message.**
+The server **rejects the connection entirely** when the ClientHello contains the `compress_certificate` extension. This confirms the compression is not merely failing — the server cannot handle the extension at all.
 
 ### 5. Identical Network Traffic
 
@@ -261,9 +261,10 @@ The `-cert_comp` flag causes the server to attempt compression, but it **fails a
 
 ### Recommendations
 
-1. **Rebuild OpenSSL** with explicit `enable-cert-comp` or verify `OPENSSL_NO_COMP_ALG` is not set
-2. **Test with upstream OpenSSL** (without OQS) to isolate the issue
-3. **Report to OQS provider** as a compatibility issue with TLS 1.3 extensions
+1. **Rebuild OpenSSL** with verified `OPENSSL_NO_COMP_ALG` undefined and working BIO compression methods
+2. **Verify zlib/brotli/zstd linkage**: `ldd /opt/oqssa/lib64/libcrypto.so | grep -E "zlib|brotli|zstd"` should show linking
+3. **Test with upstream OpenSSL** (no OQS) to confirm RFC 8879 works with clean build
+4. **Check `SSL_CTX_compress_certs()`** API availability in the installed headers
 
 ---
 
